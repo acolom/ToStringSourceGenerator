@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis;
 using ToStringSourceGenerator.Utils;
 using ToStringSourceGenerator.Attributes;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ToStringSourceGenerator.Generators
 {
@@ -33,7 +35,6 @@ namespace ToStringSourceGenerator.Generators
             }
             else
             {
-                //Debugger.Launch();
                 WritePartialClassSourceText(indentedTextWriter, context, type);
             }
 
@@ -72,17 +73,16 @@ namespace ToStringSourceGenerator.Generators
         {
             indentedTextWriter.Write("return $\"");
             var stringValueInMethod = new StringBuilder();
+
             var count = 0;
             foreach (var propertySymbol in GetSymbolsForToString(type))
             {
-                var isString = propertySymbol.Type.SpecialType.ToString() == "System_String";
-
                 stringValueInMethod.Append(count > 0 ? " " : string.Empty);
                 stringValueInMethod.Append($"{propertySymbol.Name}{_propertySeparator}"); // Add propertyName + separator
                 stringValueInMethod.Append($" "); // Add space
-                stringValueInMethod.Append(isString ? "\\\"" : string.Empty); // Add \" if it's a string
-                stringValueInMethod.Append($"{{{propertySymbol.Name}}}");     // Add {propertyName}
-                stringValueInMethod.Append(isString ? "\\\"" : string.Empty); // Add \" if it's a string
+
+                WritePropertyValueToStringRepresentation(stringValueInMethod, context, propertySymbol);
+
                 stringValueInMethod.Append($"{ _valuesSeparator}"); // Add value separator
 
                 count++;
@@ -90,24 +90,42 @@ namespace ToStringSourceGenerator.Generators
 
             // remove traling separator
             stringValueInMethod.Length -= _valuesSeparator.Length;
-            indentedTextWriter.Write(stringValueInMethod);
+            indentedTextWriter.Write(stringValueInMethod.ToString());
             indentedTextWriter.Write("\";");
         }
-        private static IEnumerable<IPropertySymbol> GetSymbolsForToString(INamedTypeSymbol type)
+
+        public static void WritePropertyValueToStringRepresentation(StringBuilder sb, SourceGeneratorContext context, IPropertySymbol namedTypeSymbol)
         {
-            foreach (var typeProperty in type.GetMembers().Where(t => t.Kind == SymbolKind.Property))
+            var objectDelimiter = GetSeparatorFor(namedTypeSymbol.Type.SpecialType);
+
+            sb.Append(GetOpeningSeparatorFor(objectDelimiter)); 
+
+            var attributeFormatString = CompilationHelper.GetAttributesOfType<FormatToStringAttribute>(namedTypeSymbol).SingleOrDefault();
+            if (attributeFormatString != null)
             {
-                if (typeProperty is IPropertySymbol propertySymbol)
-                {
-                    var visible = propertySymbol.DeclaredAccessibility == Accessibility.Public || propertySymbol.DeclaredAccessibility == Accessibility.Internal;
-                    var containsSkipAttribute = CompilationHelper.SymbolContainsAttribute<SkipToStringAttribute>(propertySymbol);
-                    
-                    if (visible && !containsSkipAttribute)
-                    {
-                        yield return propertySymbol;
-                    }
-                }
+                var format = GetFirstConstructorArgumentValueOfAttribute(attributeFormatString);
+                sb.Append($"{{{namedTypeSymbol.Name}:{format}}}");
             }
+            else
+            {
+                sb.Append($"{{{namedTypeSymbol.Name}}}");
+            }
+            
+            sb.Append(GetClosingSeparatorFor(objectDelimiter));
+        }
+
+        private static void Report_MultiplesFormatStringAttributesApplied(SourceGeneratorContext context, INamedTypeSymbol type)
+        {
+            // TODO Reportar mejor la localizacion
+            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                nameof(FormatToStringAttribute),
+                nameof(FormatToStringAttribute),
+                $"Multiples attributes form No properties found in '{type.ContainingNamespace}.{type.Name}' type to fill ToString() method.",
+                $"{nameof(AutoToStringAttribute)}",
+                DiagnosticSeverity.Warning,
+                true),
+                type.Locations.FirstOrDefault() ?? Location.None
+                ));
         }
 
         private static void Report_NoPropertiesFoundOnMethod(SourceGeneratorContext context, INamedTypeSymbol type)
@@ -153,6 +171,23 @@ namespace ToStringSourceGenerator.Generators
         {
             return GetToStringMethodWithNoArguments(type) != null;
         }
+        private static IEnumerable<IPropertySymbol> GetSymbolsForToString(INamedTypeSymbol type)
+        {
+            foreach (var typeProperty in type.GetMembers().Where(t => t.Kind == SymbolKind.Property))
+            {
+                if (typeProperty is IPropertySymbol propertySymbol)
+                {
+                    var visible = propertySymbol.DeclaredAccessibility == Accessibility.Public || propertySymbol.DeclaredAccessibility == Accessibility.Internal;
+                    var containsSkipAttribute = CompilationHelper.SymbolContainsAttribute<SkipToStringAttribute>(propertySymbol);
+
+                    if (visible && !containsSkipAttribute)
+                    {
+                        yield return propertySymbol;
+                    }
+                }
+            }
+        }
+
         private static IMethodSymbol GetToStringMethodWithNoArguments(ITypeSymbol type)
         {
             var toStringMembers = type.GetMembers("ToString");
@@ -167,6 +202,78 @@ namespace ToStringSourceGenerator.Generators
             return null;
         }
 
+        private static string GetFirstConstructorArgumentValueOfAttribute(AttributeData data)
+        {
+            var constructorArgument = data.ConstructorArguments.First();
+            return (string)constructorArgument.Value;
+        }
+        private enum Separator {  None, Brace, Array, Quote }
 
+        private static string GetOpeningSeparatorFor(Separator separator)
+        {
+            switch (separator)
+            {
+                case Separator.None:
+                    return string.Empty;
+                case Separator.Brace:
+                    return "{{ ";
+                case Separator.Array:
+                    return "[ ";
+                case Separator.Quote:
+                    return "\\\"";
+                default:
+                    throw new System.Exception($"Unexpected separator value: '{separator}'");
+            }
+        }
+
+
+        private static string GetClosingSeparatorFor(Separator separator)
+        {
+            switch (separator)
+            {
+                case Separator.None:
+                    return string.Empty;
+                case Separator.Brace:
+                    return " }}";
+                case Separator.Array:
+                    return " ]";
+                case Separator.Quote:
+                    return "\\\"";
+                default:
+                    throw new System.Exception($"Unexpected separator value: '{separator}'");
+            }
+        }
+
+
+        private static Separator GetSeparatorFor(SpecialType specialType)
+        {
+            var separator = Separator.None;
+            switch (specialType)
+            {
+                case SpecialType.None:
+                case SpecialType.System_Object:
+                    separator = Separator.Brace;
+                    break;
+                case SpecialType.System_Array:
+                case SpecialType.System_Collections_IEnumerable:
+                case SpecialType.System_Collections_Generic_IEnumerable_T:
+                case SpecialType.System_Collections_Generic_IList_T:
+                case SpecialType.System_Collections_Generic_ICollection_T:
+                case SpecialType.System_Collections_IEnumerator:
+                case SpecialType.System_Collections_Generic_IEnumerator_T:
+                case SpecialType.System_Collections_Generic_IReadOnlyList_T:
+                case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
+                    separator = Separator.Array;
+                    break;
+                case SpecialType.System_String:
+                case SpecialType.System_DateTime:
+                    separator = Separator.Quote;
+                    break;
+                case SpecialType.System_Runtime_CompilerServices_IsVolatile:
+                    break;
+                
+            }
+            return separator;
+        }
     }
 }

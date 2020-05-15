@@ -30,7 +30,6 @@ namespace ToStringSourceGenerator
 
             var compilation = (CSharpCompilation)context.Compilation;
             var types = CompilationHelper.GetAllTypes(compilation.Assembly);
-            
             using (var stringWriter = new StringWriter())
             using (var indentedTextWriter = new IndentedTextWriter(stringWriter, "    "))
             {
@@ -47,6 +46,7 @@ namespace ToStringSourceGenerator
 
                 var sourceText = SourceText.From(stringWriter.ToString(), Encoding.UTF8);
                 var hintName = $"AutoToString_{compilation.Assembly.Name}.g.cs";
+                
                 context.AddSource(hintName, sourceText);
             }
         }

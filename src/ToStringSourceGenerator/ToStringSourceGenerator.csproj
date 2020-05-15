@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0-3.20207.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0-beta2.final" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="16.4.280" />
   </ItemGroup>
 
 </Project>

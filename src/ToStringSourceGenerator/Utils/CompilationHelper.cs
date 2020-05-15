@@ -63,16 +63,32 @@ namespace ToStringSourceGenerator.Utils
             return false;
         }
 
+        public static bool AttributeDataIsOfType<T>(AttributeData attributeData) where T : Attribute
+        {
+            return typeof(T).FullName == attributeData.AttributeClass.ToDisplayString();
+        }
+
         public static bool SymbolContainsAttribute<T>(ISymbol symbol) where T : Attribute
         {
             foreach (var attr in symbol.GetAttributes())
             {
                 // better way to check??
-                var isAttr = typeof(T).FullName == attr.AttributeClass.ToDisplayString();
+                var isAttr = AttributeDataIsOfType<T>(attr);
                 if (isAttr)
                     return true;
             }
             return false;
+        }
+
+        public static IEnumerable<AttributeData> GetAttributesOfType<T>(ISymbol symbol) where T : Attribute
+        {
+            foreach (var attr in symbol.GetAttributes())
+            {
+                // better way to check??
+                var isAttr = AttributeDataIsOfType<T>(attr);
+                if (isAttr)
+                    yield return attr;
+            }
         }
     }
 }
