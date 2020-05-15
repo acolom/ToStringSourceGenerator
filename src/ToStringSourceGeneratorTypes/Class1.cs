@@ -1,5 +1,5 @@
 ﻿using System;
-using ToStringSourceGenerator;
+using ToStringSourceGenerator.Attributes;
 
 namespace ToStringSourceGeneratorTypes
 {
@@ -9,6 +9,9 @@ namespace ToStringSourceGeneratorTypes
     {
         public int Id { get; set; }
         public string Text { get; set; }
+
+        [SkipToString]
+        public string Password { get; set; }
     }
 
     [AutoToString]

@@ -12,7 +12,8 @@ namespace ToStringSourceGenerator.Tests
             var demoValue = new DemoTypeWithAutoToString()
             {
                 Id = 1,
-                Text = "Some text"
+                Text = "Some text",
+                Password = "********"
             };
 
             Assert.Equal("Id: 1, Text: \"Some text\"", demoValue.ToString());

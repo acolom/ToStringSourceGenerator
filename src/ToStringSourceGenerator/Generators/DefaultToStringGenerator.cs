@@ -1,11 +1,11 @@
-﻿using System;
-using System.CodeDom.Compiler;
+﻿using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using ToStringSourceGenerator.Utils;
+using ToStringSourceGenerator.Attributes;
+using System.Diagnostics;
 
 namespace ToStringSourceGenerator.Generators
 {
@@ -15,7 +15,7 @@ namespace ToStringSourceGenerator.Generators
         private const string _propertySeparator = ":";
         public static bool ShouldUseGenerator(INamedTypeSymbol type)
         {
-            return type.GetAttributes().Any(attr => attr.AttributeClass.Name == nameof(AutoToStringAttribute));
+            return CompilationHelper.SymbolContainsAttribute<AutoToStringAttribute>(type);
         }
         public static void WriteTo(IndentedTextWriter indentedTextWriter, SourceGeneratorContext context, INamedTypeSymbol type)
         {
@@ -99,7 +99,10 @@ namespace ToStringSourceGenerator.Generators
             {
                 if (typeProperty is IPropertySymbol propertySymbol)
                 {
-                    if (propertySymbol.DeclaredAccessibility == Accessibility.Public || propertySymbol.DeclaredAccessibility == Accessibility.Internal)
+                    var visible = propertySymbol.DeclaredAccessibility == Accessibility.Public || propertySymbol.DeclaredAccessibility == Accessibility.Internal;
+                    var containsSkipAttribute = CompilationHelper.SymbolContainsAttribute<SkipToStringAttribute>(propertySymbol);
+                    
+                    if (visible && !containsSkipAttribute)
                     {
                         yield return propertySymbol;
                     }

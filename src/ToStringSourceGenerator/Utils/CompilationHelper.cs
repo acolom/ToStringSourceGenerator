@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -58,6 +60,18 @@ namespace ToStringSourceGenerator.Utils
                 }
             }
 
+            return false;
+        }
+
+        public static bool SymbolContainsAttribute<T>(ISymbol symbol) where T : Attribute
+        {
+            foreach (var attr in symbol.GetAttributes())
+            {
+                // better way to check??
+                var isAttr = typeof(T).FullName == attr.AttributeClass.ToDisplayString();
+                if (isAttr)
+                    return true;
+            }
             return false;
         }
     }
