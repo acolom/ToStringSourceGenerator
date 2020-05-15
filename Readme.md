@@ -1,55 +1,50 @@
 
+# ToString() Source Generator
 
-1Dependecias
+This sourcer generator allows to auto generate ToString() methods. It's usefull to log POCO objects. Feel free to comment or suggest changes
 
-https://dotnet.microsoft.com/download/dotnet/5.0
+## How to use
 
-Instalar el preview de VS 2019 
+Source generator will be installed through NUGET, afterwards simply add some attrributes to your class
 
-Abrrir la solucion instalar lo que te pida
+## Example
 
-Sin .net sdk 5 nada
+Add `[AutoToString]` attribute to your class.
 
+With `[SkipToString]` avoid property output and with `[FormatToString]` customize property output
 
-1 Crear el proyecto
+```C#
+[AutoToString]
+public partial class DemoTypeWithAutoToString
+{
+    public int Id { get; set; }
+    public string Text { get; set; }
 
-2 Crear el test (que servira para las dos cosas)
+    [SkipToString]
+    public string Password { get; set; }
 
-3 Agregar al proyecto destino  para que lo pille
+    [FormatToString("HH:mm")]
+    public DateTime Time { get; set; }
 
-  <ProjectReference Include="..\ToStringSourceGenerator\ToStringSourceGenerator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"
-     />
+    private string PrivateValue { get; set; }
+}
+```
 
-NO funciona en los tests asi que se genera un libreria nueva para las pruebas
+Generator will override `ToString()` method and will create a method like this
 
-# 1 generar un metodo toString()
+```C#
+public override string ToString()
+{
+    return $"Id: {Id}, Text: \"{Text}\", Time: \"{Time:HH:mm}\"";
+}
+```
 
-Pasos seguidos
+Nested objectes are also supported (if AutoToString attribute is added to nested classes)
 
-1 Generar sln
+## Under development
 
-2 Generar proyecto AutoToString
+As source generator is in preview, this project is not ended
 
-3 Generar proyecto Types
+## Next Changes
 
-4 Generar proyecto Tests
-
-5 En el proyecto AutoToString generar codigo para emitir
-
-6 Copiar las clases de utilidad del proyecto Minsk
-
-7 Iterar todos los tipos y encontrar aquellos que tienen el atrributo correspondiente
-
-8 Generar clase en memoria para hacer el autotostring
-
-9 validar que la clase es parcial y generar un warning en caso de que no lo sea
-
-10 Hacer test que valida el output
-
-
-Siguiente paso es hacer el autotostrign dinamico
-
-Validar
-
+I plan to create a Nuget package to distribute this tool
