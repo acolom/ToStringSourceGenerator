@@ -30,14 +30,16 @@ namespace ToStringSourceGenerator
 
             var compilation = (CSharpCompilation)context.Compilation;
             var types = CompilationHelper.GetAllTypes(compilation.Assembly);
+
             using (var stringWriter = new StringWriter())
             using (var indentedTextWriter = new IndentedTextWriter(stringWriter, "    "))
             {
+                var defaultToStringGenerator = new DefaultToStringGenerator(context);
                 foreach (var type in types)
                 {
                     if (DefaultToStringGenerator.ShouldUseGenerator(type))
                     {
-                        DefaultToStringGenerator.WriteTo(indentedTextWriter, context, type);
+                        defaultToStringGenerator.WriteType(type, indentedTextWriter);
                     }
                 }
 
