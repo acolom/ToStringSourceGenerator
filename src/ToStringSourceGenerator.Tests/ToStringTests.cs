@@ -7,9 +7,9 @@ namespace ToStringSourceGenerator.Tests
     public class ToStringTests
     {
         [Fact]
-        public void ToString_ISOverriden()
+        public void ToString_IsOverriden()
         {
-            var demoValue = new DemoTypeWithAutoToString()
+            var demoValue = new DemoType()
             {
                 Id = 1,
                 Text = "Some text",
@@ -23,11 +23,11 @@ namespace ToStringSourceGenerator.Tests
         [Fact]
         public void ToString_IsOverriden_NestedObjects()
         {
-            var demoValue = new NestedObjectToString()
+            var demoValue = new DemoNestedType()
             {
                 Id = 1,
                 Text = "Some text",
-                Prop = new DemoTypeWithAutoToString()
+                Prop = new DemoType()
                 {
                     Id = 1,
                     Text = "Some text",
