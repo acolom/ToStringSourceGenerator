@@ -7,19 +7,19 @@ namespace ToStringSourceGeneratorTypes
     public partial class DemoType
     {
         public int Id { get; set; }
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         [SkipToString]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [FormatToString("HH:mm")]
         public DateTime Time { get; set; }
 
-        
-        private string PrivateValue { get; set; }
+
+        private string? PrivateValue { get; set; }
     }
 
-  
+
 
     //[AutoToString]
     //public partial class DemoTypeWithNoProperties

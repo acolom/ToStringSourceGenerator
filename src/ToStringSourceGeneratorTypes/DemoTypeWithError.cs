@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ToStringSourceGenerator.Attributes;
+﻿using ToStringSourceGenerator.Attributes;
 
 namespace ToStringSourceGeneratorTypes
 {
@@ -10,7 +7,7 @@ namespace ToStringSourceGeneratorTypes
     public partial class DemoTypeWithError
     {
         public int Id { get; set; }
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         // Un comment and should give error
         //public override string ToString()

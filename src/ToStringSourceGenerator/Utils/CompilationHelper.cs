@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -18,7 +15,7 @@ namespace ToStringSourceGenerator.Utils
         {
             var result = new List<INamedTypeSymbol>();
             GetAllTypes(result, symbol.GlobalNamespace);
-            result.Sort((x, y) => x.MetadataName.CompareTo(y.MetadataName));
+            result.Sort((x, y) => string.Compare(x.MetadataName, y.MetadataName, StringComparison.InvariantCulture));
             return result;
         }
 
@@ -34,12 +31,13 @@ namespace ToStringSourceGenerator.Utils
 
         public static bool IsDerivedFrom(ITypeSymbol type, INamedTypeSymbol baseType)
         {
-            while (type != null)
+            var iteratorType = type;
+            while (iteratorType != null)
             {
                 if (SymbolEqualityComparer.Default.Equals(type, baseType))
                     return true;
 
-                type = type.BaseType;
+                iteratorType = iteratorType.BaseType;
             }
 
             return false;
@@ -65,7 +63,7 @@ namespace ToStringSourceGenerator.Utils
 
         public static bool AttributeDataIsOfType<T>(AttributeData attributeData) where T : Attribute
         {
-            return typeof(T).FullName == attributeData.AttributeClass.ToDisplayString();
+            return typeof(T).FullName == attributeData.AttributeClass?.ToDisplayString();
         }
 
         public static bool SymbolContainsAttribute<T>(ISymbol symbol) where T : Attribute

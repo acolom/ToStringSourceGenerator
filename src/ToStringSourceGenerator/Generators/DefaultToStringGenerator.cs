@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft;
 using Microsoft.CodeAnalysis;
-using ToStringSourceGenerator.Utils;
 using ToStringSourceGenerator.Attributes;
-using System.Diagnostics;
-using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ToStringSourceGenerator.Utils;
 
 namespace ToStringSourceGenerator.Generators
 {
@@ -15,12 +13,12 @@ namespace ToStringSourceGenerator.Generators
     {
         private const string _valuesSeparator = ",";
         private const string _propertySeparator = ":";
-        
+
         private readonly SourceGeneratorContext _context;
 
-        public static bool ShouldUseGenerator(INamedTypeSymbol type)
+        internal static bool ShouldUseGenerator([ValidatedNotNull] INamedTypeSymbol symbol)
         {
-            return CompilationHelper.SymbolContainsAttribute<AutoToStringAttribute>(type);
+            return CompilationHelper.SymbolContainsAttribute<AutoToStringAttribute>(symbol);
         }
 
         public DefaultToStringGenerator(SourceGeneratorContext context)
@@ -32,7 +30,7 @@ namespace ToStringSourceGenerator.Generators
         {
             return new DefaultToStringGenerator(context);
         }
-        public void WriteType(INamedTypeSymbol type, IndentedTextWriter indentedTextWriter)
+        internal void WriteType(INamedTypeSymbol type, IndentedTextWriter indentedTextWriter)
         {
             if (!CompilationHelper.IsPartial(type))
             {
@@ -53,7 +51,7 @@ namespace ToStringSourceGenerator.Generators
 
         }
 
-        private void WritePartialClassSourceTextTo(INamedTypeSymbol type, IndentedTextWriter indentedTextWriter)
+        private static void WritePartialClassSourceTextTo(INamedTypeSymbol type, IndentedTextWriter indentedTextWriter)
         {
             // TODO Comprobar si contiene to string
 
@@ -82,7 +80,7 @@ namespace ToStringSourceGenerator.Generators
             indentedTextWriter.Indent--;
             indentedTextWriter.WriteLine("}");
         }
-        private void WriteToStringMethodBody(INamedTypeSymbol type, IndentedTextWriter indentedTextWriter)
+        private static void WriteToStringMethodBody(INamedTypeSymbol type, IndentedTextWriter indentedTextWriter)
         {
             indentedTextWriter.Write("return $\"");
             var stringValueInMethod = new StringBuilder();
@@ -106,7 +104,7 @@ namespace ToStringSourceGenerator.Generators
             indentedTextWriter.Write(stringValueInMethod.ToString());
             indentedTextWriter.Write("\";");
         }
-        private void WritePropertyValueToStringRepresentation(StringBuilder sb, IPropertySymbol namedTypeSymbol)
+        private static void WritePropertyValueToStringRepresentation(StringBuilder sb, IPropertySymbol namedTypeSymbol)
         {
             var propertyVauleEnclosingDelimiter = ObjectSeparatorTokensExtensions.GetSeparatorFor(namedTypeSymbol.Type.SpecialType);
             sb.Append(propertyVauleEnclosingDelimiter.GetOpeningSeparatorFor());
@@ -163,7 +161,7 @@ namespace ToStringSourceGenerator.Generators
                 type.Locations.FirstOrDefault() ?? Location.None
                 ));
         }
-        private void Report_ClassContainsToStringWithNoArguments(INamedTypeSymbol type, IMethodSymbol method)
+        private void Report_ClassContainsToStringWithNoArguments(INamedTypeSymbol type, IMethodSymbol? method)
         {
             // TODO Reportar mejor la localizacion
             _context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
@@ -173,10 +171,10 @@ namespace ToStringSourceGenerator.Generators
                 $"{nameof(AutoToStringAttribute)}",
                 DiagnosticSeverity.Error,
                 true),
-                method.Locations.FirstOrDefault() ?? Location.None
+                method?.Locations.FirstOrDefault() ?? Location.None
                 ));
         }
-        private bool ContainsToStringMethodWithNoArguments(ITypeSymbol type)
+        private static bool ContainsToStringMethodWithNoArguments(ITypeSymbol type)
         {
             return GetToStringMethodWithNoArguments(type) != null;
         }
@@ -196,7 +194,7 @@ namespace ToStringSourceGenerator.Generators
                 }
             }
         }
-        private static IMethodSymbol GetToStringMethodWithNoArguments(ITypeSymbol type)
+        private static IMethodSymbol? GetToStringMethodWithNoArguments(ITypeSymbol type)
         {
             var toStringMembers = type.GetMembers("ToString");
             foreach (var toStringMember in toStringMembers)
@@ -209,10 +207,10 @@ namespace ToStringSourceGenerator.Generators
             }
             return null;
         }
-        private static string GetFirstConstructorArgumentValueOfAttribute(AttributeData data)
+        private static string? GetFirstConstructorArgumentValueOfAttribute(AttributeData data)
         {
             var constructorArgument = data.ConstructorArguments.First();
-            return (string)constructorArgument.Value;
+            return (string?)constructorArgument.Value;
         }
 
 

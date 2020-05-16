@@ -1,52 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace ToStringSourceGenerator.Generators
 {
     public static class ObjectSeparatorTokensExtensions
     {
-        public static string GetOpeningSeparatorFor(this ObjectSeparatorTokens separator)
+        public static string GetOpeningSeparatorFor(this ObjectSeparatorToken separator)
         {
             switch (separator)
             {
-                case ObjectSeparatorTokens.None:
+                case ObjectSeparatorToken.None:
                     return string.Empty;
-                case ObjectSeparatorTokens.Brace:
+                case ObjectSeparatorToken.Brace:
                     return "{{ ";
-                case ObjectSeparatorTokens.Array:
+                case ObjectSeparatorToken.Array:
                     return "[ ";
-                case ObjectSeparatorTokens.Quote:
+                case ObjectSeparatorToken.Quote:
                     return "\\\"";
                 default:
                     throw new System.Exception($"Unexpected separator value: '{separator}'");
             }
         }
-        public static string GetClosingSeparatorFor(this ObjectSeparatorTokens separator)
+        public static string GetClosingSeparatorFor(this ObjectSeparatorToken separator)
         {
             switch (separator)
             {
-                case ObjectSeparatorTokens.None:
+                case ObjectSeparatorToken.None:
                     return string.Empty;
-                case ObjectSeparatorTokens.Brace:
+                case ObjectSeparatorToken.Brace:
                     return " }}";
-                case ObjectSeparatorTokens.Array:
+                case ObjectSeparatorToken.Array:
                     return " ]";
-                case ObjectSeparatorTokens.Quote:
+                case ObjectSeparatorToken.Quote:
                     return "\\\"";
                 default:
                     throw new System.Exception($"Unexpected separator value: '{separator}'");
             }
         }
-        public static ObjectSeparatorTokens GetSeparatorFor(SpecialType specialType)
+        public static ObjectSeparatorToken GetSeparatorFor(SpecialType specialType)
         {
-            var separator = ObjectSeparatorTokens.None;
+            var separator = ObjectSeparatorToken.None;
             switch (specialType)
             {
                 case SpecialType.None:
                 case SpecialType.System_Object:
-                    separator = ObjectSeparatorTokens.Brace;
+                    separator = ObjectSeparatorToken.Brace;
                     break;
                 case SpecialType.System_Array:
                 case SpecialType.System_Collections_IEnumerable:
@@ -57,11 +54,11 @@ namespace ToStringSourceGenerator.Generators
                 case SpecialType.System_Collections_Generic_IEnumerator_T:
                 case SpecialType.System_Collections_Generic_IReadOnlyList_T:
                 case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
-                    separator = ObjectSeparatorTokens.Array;
+                    separator = ObjectSeparatorToken.Array;
                     break;
                 case SpecialType.System_String:
                 case SpecialType.System_DateTime:
-                    separator = ObjectSeparatorTokens.Quote;
+                    separator = ObjectSeparatorToken.Quote;
                     break;
             }
             return separator;

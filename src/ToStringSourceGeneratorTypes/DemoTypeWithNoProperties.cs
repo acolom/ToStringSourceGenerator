@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ToStringSourceGenerator.Attributes;
+﻿using ToStringSourceGenerator.Attributes;
 
 namespace ToStringSourceGeneratorTypes
 {

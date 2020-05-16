@@ -1,9 +1,10 @@
 <Project>
 
   <PropertyGroup>
-     <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <Features>strict</Features>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
 </Project>
