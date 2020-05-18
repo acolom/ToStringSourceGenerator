@@ -6,6 +6,9 @@ namespace ToStringSourceGeneratorTypes
     [AutoToString]
     public partial class DemoType
     {
+        public DemoType()
+        {
+        }
         public int Id { get; set; }
         public string? Text { get; set; }
 
@@ -15,18 +18,6 @@ namespace ToStringSourceGeneratorTypes
         [FormatToString("HH:mm")]
         public DateTime Time { get; set; }
 
-
         private string? PrivateValue { get; set; }
     }
-
-
-
-    //[AutoToString]
-    //public partial class DemoTypeWithNoProperties
-    //{
-    //}
 }
-
-
-
-

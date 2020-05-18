@@ -20,8 +20,8 @@ namespace ToStringSourceGenerator.Generators
         {
             context.AddCompiledOnMetadataAttribute();
 
-            var compilation = (CSharpCompilation)context.Compilation;
-            var types = CompilationHelper.GetAllTypes(compilation.Assembly);
+            var compilation = context.Compilation;
+            var types = CompilationHelper.GetAllTypes(context.Compilation.Assembly);
 
             using (var stringWriter = new StringWriter())
             using (var indentedTextWriter = new IndentedTextWriter(stringWriter, "    "))
