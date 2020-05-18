@@ -5,11 +5,21 @@ This sourcer generator allows to auto generate ToString() methods. It's usefull 
 
 ## How to use
 
-Source generator will be installed through NUGET, afterwards simply add some attrributes to your class
+Now some changes need to be applied to csproj in order to execute the generator
+
+```XML
+<ItemGroup>
+    <ProjectReference Include="..\ToStringSourceGenerator\ToStringSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+</ItemGroup>
+```
+
+In next releases soruce generator will be installed from NUGET
+
+After installing simply add some attrributes to your class.
 
 ## Example
 
-Add `[AutoToString]` attribute to your class.
+Add `[AutoToString]` attribute to your class and make it partial.
 
 With `[SkipToString]` avoid property output and with `[FormatToString]` customize property output
 
@@ -30,7 +40,7 @@ public partial class DemoTypeWithAutoToString
 }
 ```
 
-Generator will override `ToString()` method and will create a method like this
+Generator will override `ToString()` method and will create a method like this one:
 
 ```C#
 public override string ToString()
@@ -39,12 +49,15 @@ public override string ToString()
 }
 ```
 
-Nested objectes are also supported (if AutoToString attribute is added to nested classes)
+Nested objectes are also supported (if AutoToString attribute is added to nested classes).
 
 ## Under development
 
-As source generator is in preview, this project is not ended
+As source generator is in preview, this project is not ended.
 
 ## Next Changes
 
-I plan to create a Nuget package to distribute this tool
+Next changes planned are:
+
+* Detect properties that implements IEnumerable interface to output it's content
+* Create Nuget package
